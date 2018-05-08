@@ -9,20 +9,26 @@ defmodule RealWorld.Accounts.Auth do
   alias RealWorld.Accounts.User
   alias RealWorld.Accounts.Encryption
 
+  def find_user_and_check_password(%{email: email, password: password} = args) do
+    find_user_and_check_password(%{"user" => %{"email" => email, "password" => password}})
+  end
+
   def find_user_and_check_password(%{"user" => %{"email" => email, "password" => password}}) do
     user = Repo.get_by(User, email: String.downcase(email))
 
     case check_password(user, password) do
-      true -> {:ok, user}
+      true -> {:ok, User.add_token(user)}
       _ -> {:error, "Could not login"}
     end
   end
 
   def register(attrs \\ %{}) do
-    %User{}
-    |> User.changeset(attrs)
-    |> hash_password
-    |> Repo.insert()
+    with {:ok, user} <-
+           %User{}
+           |> User.changeset(attrs)
+           |> hash_password
+           |> Repo.insert(),
+         do: {:ok, User.add_token(user)}
   end
 
   defp check_password(user, password) do

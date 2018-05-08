@@ -12,6 +12,8 @@ defmodule RealWorld.Accounts.UserFollower do
   schema "user_followers" do
     field(:user_id, :integer, primary_key: true)
     field(:followee_id, :integer, primary_key: true)
+    belongs_to(:follower, RealWorld.Accounts.User, foreign_key: :user_id, define_field: false)
+    belongs_to(:followee, RealWorld.Accounts.User, foreign_key: :followee_id, define_field: false)
 
     timestamps(updated_at: false)
   end

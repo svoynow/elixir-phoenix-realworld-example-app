@@ -105,7 +105,7 @@ defmodule RealWorld.BlogTest do
 
   test "unfavorite/2 deletes the favorite", %{article: article, author: user} do
     insert(:favorite, article: article, user: user)
-    Blog.unfavorite(article, user)
+    Blog.unfavorite(user, article)
 
     assert length(Repo.all(Favorite)) == 0
   end

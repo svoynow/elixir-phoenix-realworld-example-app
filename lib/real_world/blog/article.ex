@@ -5,6 +5,7 @@ defmodule RealWorld.Blog.Article do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query
   alias RealWorld.Accounts.User
   alias RealWorld.Blog.{Article, Favorite}
 
@@ -17,8 +18,8 @@ defmodule RealWorld.Blog.Article do
     field(:description, :string)
     field(:title, :string)
     field(:slug, :string)
-    field(:tag_list, {:array, :string})
-    field(:favorited, :boolean, virtual: true)
+    field(:tag_list, {:array, :string}, default: [])
+    field(:favorited, :boolean, virtual: true, default: false)
 
     belongs_to(:author, User, foreign_key: :user_id)
     has_many(:favorites, Favorite)
@@ -47,5 +48,23 @@ defmodule RealWorld.Blog.Article do
     str
     |> String.downcase()
     |> String.replace(~r/[^\w-]+/u, "-")
+  end
+
+  def favorited_by(query, username) do
+    query
+    |> join(:inner, [a], _ in assoc(a, :favorites))
+    |> join(:inner, [_a, ..., f], _ in assoc(f, :user))
+    |> where([_a, ..., u], u.username == ^username)
+  end
+
+  def tagged(query, tag) do
+    query
+    |> where([a], ^tag in a.tag_list)
+  end
+
+  def authored_by(query, username) do
+    query
+    |> join(:inner, [a], _ in assoc(a, :author))
+    |> where([ar, ..., au], au.username == ^username)
   end
 end

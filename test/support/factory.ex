@@ -3,8 +3,8 @@ defmodule RealWorld.Factory do
 
   def user_factory do
     %RealWorld.Accounts.User{
-      email: "john@jacob.com",
-      username: "john",
+      email: sequence(:email, &"email-#{&1}@example.com"),
+      username: sequence(:username, &"user#{&1}"),
       password: "some password",
       bio: "some bio",
       image: "some image"
@@ -15,10 +15,17 @@ defmodule RealWorld.Factory do
     %RealWorld.Blog.Article{
       body: "some body",
       description: "some description",
-      title: "some title",
+      title: sequence(:title, &"article-#{&1}"),
       tag_list: ["tag1", "tag2"],
-      slug: "some-tile",
+      slug: sequence(:slug, &"article-slug-#{&1}"),
       author: build(:user)
+    }
+  end
+
+  def follow_factory do
+    %RealWorld.Accounts.UserFollower{
+      user_id: build(:user).id,
+      followee_id: build(:user).id
     }
   end
 

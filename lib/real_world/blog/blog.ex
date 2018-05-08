@@ -8,6 +8,12 @@ defmodule RealWorld.Blog do
   alias RealWorld.Accounts.{User, UserFollower}
   alias RealWorld.Blog.{Article, Comment, Favorite}
 
+  @filters %{
+    tag: &Article.tagged/2,
+    author: &Article.authored_by/2,
+    favorited: &Article.favorited_by/2
+  }
+
   @doc """
   Returns the list of articles.
 
@@ -21,17 +27,33 @@ defmodule RealWorld.Blog do
     Repo.all(Article)
   end
 
-  def feed(user) do
-    query =
-      from(
-        a in Article,
-        join: uf in UserFollower,
-        on: a.user_id == uf.followee_id,
-        where: uf.user_id == ^user.id
-      )
-
-    query
+  def filtered_articles(args) do
+    args
+    |> Map.take(Map.keys(@filters))
+    |> Enum.reduce(Article, fn {k, v}, acc -> @filters[k].(acc, v) end)
+    |> offset(^args[:offset])
+    |> limit(^args[:limit])
     |> Repo.all()
+  end
+
+  def feed(user, %{limit: limit, offset: offset}) do
+    feed_query(user)
+    |> limit(^limit)
+    |> offset(^offset)
+    |> Repo.all()
+  end
+
+  def feed(user) do
+    Repo.all(feed_query(user))
+  end
+
+  defp feed_query(user) do
+    from(
+      a in Article,
+      join: uf in UserFollower,
+      on: a.user_id == uf.followee_id,
+      where: uf.user_id == ^user.id
+    )
   end
 
   def list_tags do
@@ -59,6 +81,8 @@ defmodule RealWorld.Blog do
   def get_article!(id), do: Repo.get!(Article, id)
 
   def get_article_by_slug!(slug), do: Repo.get_by!(Article, slug: slug)
+
+  def get_article_by_slug(slug), do: Repo.get_by(Article, slug: slug)
 
   @doc """
   Creates a article.
@@ -108,6 +132,11 @@ defmodule RealWorld.Blog do
       {:error, %Ecto.Changeset{}}
 
   """
+
+  def delete_article(%Article{} = article) do
+    Repo.delete(article)
+  end
+
   def delete_article(slug) do
     case Article |> Repo.get_by(slug: slug) do
       nil ->
@@ -134,6 +163,8 @@ defmodule RealWorld.Blog do
   def list_comments(article) do
     Repo.all(from(c in Comment, where: c.article_id == ^article.id))
   end
+
+  def get_comment(id), do: Repo.get(Comment, id)
 
   @doc """
   Gets a single comment.
@@ -224,7 +255,7 @@ defmodule RealWorld.Blog do
   iex> unfavorite(article)
   {:ok, %Favorite{}}
   """
-  def unfavorite(article, user) do
+  def unfavorite(user, article) do
     article
     |> find_favorite(user)
     |> Repo.delete()
@@ -248,15 +279,24 @@ defmodule RealWorld.Blog do
 
     favorite
     |> Favorite.changeset(params)
-    |> Repo.insert()
+    |> Repo.insert(on_conflict: :nothing)
+  end
+
+  def load_user_and_favorite(article, user) do
+    article
+    |> Repo.preload([:author, :favorites])
+    |> load_favorite(user)
   end
 
   def load_favorite(article, nil), do: article
 
   def load_favorite(article, user) do
     case find_favorite(article, user) do
-      %Favorite{} -> Map.put(article, :favorited, true)
-      _ -> article
+      %Favorite{} ->
+        Map.put(article, :favorited, true)
+
+      _ ->
+        article
     end
   end
 
@@ -271,5 +311,13 @@ defmodule RealWorld.Blog do
     query = from(f in Favorite, where: f.article_id == ^article.id and f.user_id == ^user.id)
 
     Repo.one(query)
+  end
+
+  def data() do
+    Dataloader.Ecto.new(Repo, query: &query/2)
+  end
+
+  def query(queryable, _args) do
+    queryable
   end
 end

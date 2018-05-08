@@ -21,7 +21,7 @@ defmodule RealWorld.Blog.FavoriteTest do
     end
   end
 
-  test "changeset/2 with valida params" do
+  test "changeset/2 with valid params" do
     favorite = %Favorite{}
     user = insert(:user)
     article = insert(:article, author: user)

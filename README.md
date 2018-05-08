@@ -1,12 +1,10 @@
 # ![RealWorld Example App](logo.png)
 
-> Elixir (Phoenix) codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld-example-apps) spec and API.
+> Elixir (Phoenix / Absinthe / GraphQL) codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres (in spirit) to the [RealWorld](https://github.com/gothinkster/realworld-example-apps) spec.
 
-This codebase was created to demonstrate a fully fledged backend application built with **Elixir and Phoenix** including CRUD operations, authentication, routing, pagination, and more.
+This codebase was created to demonstrate a fully fledged backend application built with **Elixir, Phoenix and Absinthe** including CRUD operations, authentication, pagination, and more.
 
-We've gone to great lengths to adhere to the **[credo](https://github.com/rrrene/credo)** community styleguides & best practices.
-
-For more information on how to this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
+This won't work with existing RealWorld front-ends, but we plan to write one or more example front ends
 
 ## Installing / Getting started
 
@@ -25,6 +23,11 @@ mix ecto.create  # creates the database.
 mix ecto.migrate  # run the database migrations.
 mix phx.server  # run the application.
 ```
+
+## GraphiQL Browser
+
+To browse the graphql schema and see interactive documentation you can go to:
+`http://localhost:4000/graphiql`
 
 ## Tests
 
