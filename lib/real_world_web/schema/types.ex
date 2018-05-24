@@ -28,6 +28,12 @@ defmodule RealWorldWeb.Schema.Types do
     import_fields(:base_user)
     field(:following, non_null(:boolean), resolve: &Resolvers.Accounts.following?/3)
     field(:articles, required_list(:article), resolve: dataloader(RealWorld.Blog))
+
+    field(
+      :favorited_articles,
+      required_list(:article),
+      resolve: &Resolvers.Accounts.favorited_articles/3
+    )
   end
 
   payload_object(:profile_result, :profile)
@@ -50,9 +56,10 @@ defmodule RealWorldWeb.Schema.Types do
     field(:title, non_null(:string))
     field(:description, non_null(:string))
     field(:tag_list, required_list(:string))
+    field(:favorites_count, non_null(:integer), resolve: &Resolvers.Articles.favorite_count/3)
     import_fields(:timestamps)
     import_fields(:content_fields)
-    field(:favorited, non_null(:boolean))
+    field(:favorited, non_null(:boolean), resolve: &Resolvers.Articles.is_favorite?/3)
   end
 
   payload_object(:article_result, :article)

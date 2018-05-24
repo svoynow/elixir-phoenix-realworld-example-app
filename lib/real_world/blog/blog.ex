@@ -317,6 +317,18 @@ defmodule RealWorld.Blog do
     Dataloader.Ecto.new(Repo, query: &query/2)
   end
 
+  def query(Favorite, %{user: _}) do
+    Favorite
+    |> group_by([..., f], f.article_id)
+    |> select([..., f], %{article_id: f.article_id, count: count(f.id)})
+  end
+
+  def query(Article, %{article: article, user: user}) do
+    Article
+    |> join(:inner, [..., a], f in Favorite, a.id == f.article_id)
+    |> where([..., f], f.user_id == ^user.id)
+  end
+
   def query(queryable, _args) do
     queryable
   end

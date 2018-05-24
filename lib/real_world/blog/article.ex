@@ -20,6 +20,7 @@ defmodule RealWorld.Blog.Article do
     field(:slug, :string)
     field(:tag_list, {:array, :string}, default: [])
     field(:favorited, :boolean, virtual: true, default: false)
+    field(:favorites_count, :integer, virtual: true, default: 0)
 
     belongs_to(:author, User, foreign_key: :user_id)
     has_many(:favorites, Favorite)

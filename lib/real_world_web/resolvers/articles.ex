@@ -1,6 +1,10 @@
 defmodule RealWorldWeb.Resolvers.Articles do
+  alias RealWorld.Accounts
   alias RealWorld.Blog
   alias RealWorld.Blog.Article
+  alias RealWorld.Blog.Favorite
+
+  import Absinthe.Resolution.Helpers, only: [on_load: 2]
 
   @defaults %{limit: 20, offset: 0}
 
@@ -66,5 +70,50 @@ defmodule RealWorldWeb.Resolvers.Articles do
       %Article{} -> {:ok, result}
       {:error, changeset} -> {:ok, changeset}
     end
+  end
+
+  def favorite_count(article, _, %{context: %{loader: loader, current_user: user}}) do
+    id = article.id
+
+    loader
+    |> Dataloader.load(
+      Blog,
+      {:favorites, %{user: user}},
+      article
+    )
+    |> on_load(fn loader ->
+      case Dataloader.get(
+             loader,
+             Blog,
+             {:favorites, %{user: user}},
+             article
+           ) do
+        [%{article_id: ^id, count: count}] ->
+          {:ok, count}
+
+        _ ->
+          {:ok, 0}
+      end
+    end)
+  end
+
+  def is_favorite?(article, _, %{context: %{loader: loader, current_user: current_user}}) do
+    loader
+    |> Dataloader.load(
+      Blog,
+      {:favorited_articles, %{user: current_user}},
+      current_user
+    )
+    |> on_load(fn loader ->
+      case Dataloader.get(
+             loader,
+             Blog,
+             {:favorited_articles, %{user: current_user}},
+             current_user
+           ) do
+        nil -> {:ok, false}
+        favorited -> {:ok, Enum.any?(favorited, fn a -> a.id == article.id end)}
+      end
+    end)
   end
 end

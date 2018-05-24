@@ -6,6 +6,7 @@ defmodule RealWorld.Accounts.Users do
   alias RealWorld.Repo
   alias RealWorld.Accounts.User
   alias RealWorld.Accounts.UserFollower
+  alias RealWorld.Blog.Favorite
 
   import Ecto.Query
 
@@ -82,6 +83,12 @@ defmodule RealWorld.Accounts.Users do
   def query(UserFollower, %{current_user: user}) do
     UserFollower
     |> where([..., uf], uf.user_id == ^user.id)
+  end
+
+  def query(Article, %{user: user}) do
+    Article
+    |> join(:inner, [..., a], f in Favorite, a.id == f.article_id)
+    |> where([..., f], f.user_id == ^user.id)
   end
 
   def query(queryable, _args) do

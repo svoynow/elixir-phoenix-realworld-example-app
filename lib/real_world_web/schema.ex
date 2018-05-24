@@ -10,11 +10,6 @@ defmodule RealWorldWeb.Schema do
 
   import_types(__MODULE__.Types)
 
-  # Kronky errors 
-  # resource not found
-  # mutation conflict
-  # auth failure
-
   def load_article_config do
     %{
       arg: :slug,

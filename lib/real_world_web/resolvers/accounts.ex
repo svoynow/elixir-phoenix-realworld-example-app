@@ -1,5 +1,6 @@
 defmodule RealWorldWeb.Resolvers.Accounts do
   alias RealWorld.Accounts.{Auth, Users}
+  alias RealWorld.Blog.Article
   alias RealWorld.Accounts
   import Kronky.Payload
   import Absinthe.Resolution.Helpers, only: [on_load: 2]
@@ -40,6 +41,20 @@ defmodule RealWorldWeb.Resolvers.Accounts do
     {:ok, nil}
   end
 
+  def favorited_articles(user, _, %{context: %{loader: loader}}) do
+    loader
+    |> Dataloader.load_many(Accounts, {:favorited_articles, %{user: user}}, [user])
+    |> on_load(fn loader ->
+      {:ok,
+       Dataloader.get(
+         loader,
+         Accounts,
+         {:favorited_articles, %{user: user}},
+         user
+       )}
+    end)
+  end
+
   def following?(user, _, %{context: %{loader: loader, current_user: current_user}}) do
     loader
     |> Dataloader.load_many(Accounts, {:followers, %{current_user: current_user}}, [user])
@@ -64,12 +79,10 @@ defmodule RealWorldWeb.Resolvers.Accounts do
   def follow(_, %{username: followee_name}, %{context: %{current_user: user}}) do
     case Users.follow_by_name(user, followee_name) do
       {:error, changeset} ->
-        # {:ok, changeset}
         {:ok, error_payload(changeset)}
 
       followee ->
         {:ok, success_payload(followee)}
-        # {:ok, followee}
     end
   end
 

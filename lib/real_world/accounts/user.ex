@@ -19,6 +19,8 @@ defmodule RealWorld.Accounts.User do
     field(:token, :string, virtual: true)
 
     has_many(:articles, RealWorld.Blog.Article)
+    has_many(:favorites, RealWorld.Blog.Favorite)
+    has_many(:favorited_articles, through: [:favorites, :article])
     has_many(:comments, RealWorld.Blog.Comment)
     has_many(:followers, RealWorld.Accounts.UserFollower, foreign_key: :followee_id)
     has_many(:followees, RealWorld.Accounts.UserFollower, foreign_key: :user_id)
